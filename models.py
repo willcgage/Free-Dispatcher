@@ -66,4 +66,4 @@ def get_db():
 
 @app.get("/")
 def read_root():
-    return {"message": "Train Tracking App"}
+    return {"message": "Free-Dispatcher App"}
