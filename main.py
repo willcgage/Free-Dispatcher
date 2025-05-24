@@ -65,7 +65,7 @@ class Block(Base):
     end_module = relationship("Module", foreign_keys=[end_module_id], backref="end_blocks")
 
 # Create all tables in the database (for development only; use Alembic in production)
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 # --- FastAPI Dependency for DB Session ---
 def get_db():
