@@ -2,6 +2,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Session
 import uuid
 import os
@@ -21,7 +22,7 @@ app = FastAPI()
 class Module(Base):
     __tablename__ = "modules"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String)
+    name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     endplates = relationship("Endplate", back_populates="module")
     signals = relationship("Signal", back_populates="module")
@@ -39,7 +40,7 @@ class Signal(Base):
     __tablename__ = "signals"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     module_id = Column(String, ForeignKey("modules.id"))
-    name = Column(String)
+    name = Column(String, nullable=False)
     position = Column(String)
     module = relationship("Module", back_populates="signals")
 
@@ -47,16 +48,20 @@ class Switch(Base):
     __tablename__ = "switches"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     module_id = Column(String, ForeignKey("modules.id"))
-    name = Column(String)
+    name = Column(String, nullable=False)
     type = Column(String)
     module = relationship("Module", back_populates="switches")
 
 class Block(Base):
     __tablename__ = "blocks"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String)
+    name = Column(String, nullable=False)
     start_module_id = Column(String, ForeignKey("modules.id"))
     end_module_id = Column(String, ForeignKey("modules.id"))
+
+    start_module = relationship("Module", foreign_keys=[start_module_id], backref="start_blocks")
+    end_module = relationship("Module", foreign_keys=[end_module_id], backref="end_blocks")
+
 
 Base.metadata.create_all(bind=engine)
 
