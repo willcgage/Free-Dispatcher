@@ -66,6 +66,20 @@ class Block(Base):
     start_module = relationship("Module", foreign_keys=[start_module_id], backref="start_blocks")
     end_module = relationship("Module", foreign_keys=[end_module_id], backref="end_blocks")
 
+class Dispatcher(Base):
+    __tablename__ = "dispatchers"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=True)
+
+class Train(Base):
+    __tablename__ = "trains"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    dispatcher_id = Column(String, ForeignKey("dispatchers.id"), nullable=True)
+    dispatcher = relationship("Dispatcher", backref="trains")
+
 # Create all tables in the database (for development only; use Alembic in production)
 # Base.metadata.create_all(bind=engine)
 
@@ -158,6 +172,37 @@ class BlockUpdate(BlockBase):
     pass
 
 class BlockRead(BlockBase):
+    id: str
+    class Config:
+        orm_mode = True
+
+class DispatcherBase(BaseModel):
+    name: str
+    email: Optional[str] = None
+
+class DispatcherCreate(DispatcherBase):
+    pass
+
+class DispatcherUpdate(DispatcherBase):
+    pass
+
+class DispatcherRead(DispatcherBase):
+    id: str
+    class Config:
+        orm_mode = True
+
+class TrainBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    dispatcher_id: Optional[str] = None
+
+class TrainCreate(TrainBase):
+    pass
+
+class TrainUpdate(TrainBase):
+    pass
+
+class TrainRead(TrainBase):
     id: str
     class Config:
         orm_mode = True
@@ -365,5 +410,87 @@ def delete_block(block_id: str, db: Session = Depends(get_db)):
     if not db_block:
         return {"error": "Block not found"}
     db.delete(db_block)
+    db.commit()
+    return {"ok": True}
+
+# --- CRUD Endpoints for Dispatcher ---
+
+@app.post("/dispatchers/", response_model=DispatcherRead)
+def create_dispatcher(dispatcher: DispatcherCreate, db: Session = Depends(get_db)):
+    db_dispatcher = Dispatcher(**dispatcher.dict())
+    db.add(db_dispatcher)
+    db.commit()
+    db.refresh(db_dispatcher)
+    return db_dispatcher
+
+@app.get("/dispatchers/", response_model=List[DispatcherRead])
+def read_dispatchers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return db.query(Dispatcher).offset(skip).limit(limit).all()
+
+@app.get("/dispatchers/{dispatcher_id}", response_model=DispatcherRead)
+def read_dispatcher(dispatcher_id: str, db: Session = Depends(get_db)):
+    dispatcher = db.query(Dispatcher).filter(Dispatcher.id == dispatcher_id).first()
+    if not dispatcher:
+        return {"error": "Dispatcher not found"}
+    return dispatcher
+
+@app.put("/dispatchers/{dispatcher_id}", response_model=DispatcherRead)
+def update_dispatcher(dispatcher_id: str, dispatcher: DispatcherUpdate, db: Session = Depends(get_db)):
+    db_dispatcher = db.query(Dispatcher).filter(Dispatcher.id == dispatcher_id).first()
+    if not db_dispatcher:
+        return {"error": "Dispatcher not found"}
+    for key, value in dispatcher.dict().items():
+        setattr(db_dispatcher, key, value)
+    db.commit()
+    db.refresh(db_dispatcher)
+    return db_dispatcher
+
+@app.delete("/dispatchers/{dispatcher_id}")
+def delete_dispatcher(dispatcher_id: str, db: Session = Depends(get_db)):
+    db_dispatcher = db.query(Dispatcher).filter(Dispatcher.id == dispatcher_id).first()
+    if not db_dispatcher:
+        return {"error": "Dispatcher not found"}
+    db.delete(db_dispatcher)
+    db.commit()
+    return {"ok": True}
+
+# --- CRUD Endpoints for Train ---
+
+@app.post("/trains/", response_model=TrainRead)
+def create_train(train: TrainCreate, db: Session = Depends(get_db)):
+    db_train = Train(**train.dict())
+    db.add(db_train)
+    db.commit()
+    db.refresh(db_train)
+    return db_train
+
+@app.get("/trains/", response_model=List[TrainRead])
+def read_trains(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return db.query(Train).offset(skip).limit(limit).all()
+
+@app.get("/trains/{train_id}", response_model=TrainRead)
+def read_train(train_id: str, db: Session = Depends(get_db)):
+    train = db.query(Train).filter(Train.id == train_id).first()
+    if not train:
+        return {"error": "Train not found"}
+    return train
+
+@app.put("/trains/{train_id}", response_model=TrainRead)
+def update_train(train_id: str, train: TrainUpdate, db: Session = Depends(get_db)):
+    db_train = db.query(Train).filter(Train.id == train_id).first()
+    if not db_train:
+        return {"error": "Train not found"}
+    for key, value in train.dict().items():
+        setattr(db_train, key, value)
+    db.commit()
+    db.refresh(db_train)
+    return db_train
+
+@app.delete("/trains/{train_id}")
+def delete_train(train_id: str, db: Session = Depends(get_db)):
+    db_train = db.query(Train).filter(Train.id == train_id).first()
+    if not db_train:
+        return {"error": "Train not found"}
+    db.delete(db_train)
     db.commit()
     return {"ok": True}

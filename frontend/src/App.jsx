@@ -4,6 +4,8 @@ import EndplateList from "./EndplateList";
 import SignalList from "./SignalList";
 import SwitchList from "./SwitchList";
 import BlockList from "./BlockList";
+import DispatcherList from "./DispatcherList";
+import TrainList from "./TrainList";
 import ConfigPage from "./ConfigPage";
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
           <SignalList apiUrl={apiUrl} />
           <SwitchList apiUrl={apiUrl} />
           <BlockList apiUrl={apiUrl} />
+          <DispatcherList apiUrl={apiUrl} />
+          <TrainList apiUrl={apiUrl} />
         </>
       )}
     </div>
