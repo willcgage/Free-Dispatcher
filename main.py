@@ -78,7 +78,9 @@ class Train(Base):
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     dispatcher_id = Column(String, ForeignKey("dispatchers.id"), nullable=True)
+    block_id = Column(String, ForeignKey("blocks.id"), nullable=True)  # <-- Add this line
     dispatcher = relationship("Dispatcher", backref="trains")
+    block = relationship("Block", backref="trains")  # <-- Add this line
 
 class YardMaster(Base):
     __tablename__ = "yardmasters"
@@ -201,6 +203,7 @@ class TrainBase(BaseModel):
     name: str
     description: Optional[str] = None
     dispatcher_id: Optional[str] = None
+    block_id: Optional[str] = None  # <-- Add this line
 
 class TrainCreate(TrainBase):
     pass

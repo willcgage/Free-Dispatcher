@@ -6,6 +6,7 @@ export default function TrainList({ apiUrl }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [dispatcherId, setDispatcherId] = useState("");
+  const [blockId, setBlockId] = useState("");
 
   useEffect(() => {
     fetchTrains();
@@ -21,10 +22,12 @@ export default function TrainList({ apiUrl }) {
       name,
       description,
       dispatcher_id: dispatcherId || null,
+      block_id: blockId || null,
     });
     setName("");
     setDescription("");
     setDispatcherId("");
+    setBlockId("");
     fetchTrains();
   };
 
@@ -34,7 +37,10 @@ export default function TrainList({ apiUrl }) {
       <ul>
         {trains.map((t) => (
           <li key={t.id}>
-            {t.name} {t.description && `- ${t.description}`} {t.dispatcher_id && `(Dispatcher: ${t.dispatcher_id})`}
+            {t.name}
+            {t.description && ` - ${t.description}`}
+            {t.dispatcher_id && ` (Dispatcher: ${t.dispatcher_id})`}
+            {t.block_id && ` (Block: ${t.block_id})`}
           </li>
         ))}
       </ul>
@@ -52,6 +58,11 @@ export default function TrainList({ apiUrl }) {
         placeholder="Dispatcher ID (optional)"
         value={dispatcherId}
         onChange={e => setDispatcherId(e.target.value)}
+      />
+      <input
+        placeholder="Block ID (optional)"
+        value={blockId}
+        onChange={e => setBlockId(e.target.value)}
       />
       <button onClick={handleAdd}>Add Train</button>
     </div>
