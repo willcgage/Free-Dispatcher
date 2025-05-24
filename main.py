@@ -98,6 +98,70 @@ class ModuleRead(ModuleBase):
     class Config:
         orm_mode = True
 
+class EndplateBase(BaseModel):
+    module_id: str
+    position: int
+    is_block_end: Optional[bool] = False
+
+class EndplateCreate(EndplateBase):
+    pass
+
+class EndplateUpdate(EndplateBase):
+    pass
+
+class EndplateRead(EndplateBase):
+    id: str
+    class Config:
+        orm_mode = True
+
+class SignalBase(BaseModel):
+    module_id: str
+    name: str
+    position: Optional[str] = None
+
+class SignalCreate(SignalBase):
+    pass
+
+class SignalUpdate(SignalBase):
+    pass
+
+class SignalRead(SignalBase):
+    id: str
+    class Config:
+        orm_mode = True
+
+class SwitchBase(BaseModel):
+    module_id: str
+    name: str
+    type: Optional[str] = None
+
+class SwitchCreate(SwitchBase):
+    pass
+
+class SwitchUpdate(SwitchBase):
+    pass
+
+class SwitchRead(SwitchBase):
+    id: str
+    class Config:
+        orm_mode = True
+
+class BlockBase(BaseModel):
+    name: str
+    start_module_id: str
+    end_module_id: str
+
+class BlockCreate(BlockBase):
+    pass
+
+class BlockUpdate(BlockBase):
+    pass
+
+class BlockRead(BlockBase):
+    id: str
+    class Config:
+        orm_mode = True
+
 # --- CRUD Endpoints for Module ---
 
 @app.post("/modules/", response_model=ModuleRead)
@@ -137,5 +201,169 @@ def delete_module(module_id: str, db: Session = Depends(get_db)):
     if not db_module:
         return {"error": "Module not found"}
     db.delete(db_module)
+    db.commit()
+    return {"ok": True}
+
+# --- CRUD Endpoints for Endplate ---
+
+@app.post("/endplates/", response_model=EndplateRead)
+def create_endplate(endplate: EndplateCreate, db: Session = Depends(get_db)):
+    db_endplate = Endplate(**endplate.dict())
+    db.add(db_endplate)
+    db.commit()
+    db.refresh(db_endplate)
+    return db_endplate
+
+@app.get("/endplates/", response_model=List[EndplateRead])
+def read_endplates(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return db.query(Endplate).offset(skip).limit(limit).all()
+
+@app.get("/endplates/{endplate_id}", response_model=EndplateRead)
+def read_endplate(endplate_id: str, db: Session = Depends(get_db)):
+    endplate = db.query(Endplate).filter(Endplate.id == endplate_id).first()
+    if not endplate:
+        return {"error": "Endplate not found"}
+    return endplate
+
+@app.put("/endplates/{endplate_id}", response_model=EndplateRead)
+def update_endplate(endplate_id: str, endplate: EndplateUpdate, db: Session = Depends(get_db)):
+    db_endplate = db.query(Endplate).filter(Endplate.id == endplate_id).first()
+    if not db_endplate:
+        return {"error": "Endplate not found"}
+    for key, value in endplate.dict().items():
+        setattr(db_endplate, key, value)
+    db.commit()
+    db.refresh(db_endplate)
+    return db_endplate
+
+@app.delete("/endplates/{endplate_id}")
+def delete_endplate(endplate_id: str, db: Session = Depends(get_db)):
+    db_endplate = db.query(Endplate).filter(Endplate.id == endplate_id).first()
+    if not db_endplate:
+        return {"error": "Endplate not found"}
+    db.delete(db_endplate)
+    db.commit()
+    return {"ok": True}
+
+# --- CRUD Endpoints for Signal ---
+
+@app.post("/signals/", response_model=SignalRead)
+def create_signal(signal: SignalCreate, db: Session = Depends(get_db)):
+    db_signal = Signal(**signal.dict())
+    db.add(db_signal)
+    db.commit()
+    db.refresh(db_signal)
+    return db_signal
+
+@app.get("/signals/", response_model=List[SignalRead])
+def read_signals(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return db.query(Signal).offset(skip).limit(limit).all()
+
+@app.get("/signals/{signal_id}", response_model=SignalRead)
+def read_signal(signal_id: str, db: Session = Depends(get_db)):
+    signal = db.query(Signal).filter(Signal.id == signal_id).first()
+    if not signal:
+        return {"error": "Signal not found"}
+    return signal
+
+@app.put("/signals/{signal_id}", response_model=SignalRead)
+def update_signal(signal_id: str, signal: SignalUpdate, db: Session = Depends(get_db)):
+    db_signal = db.query(Signal).filter(Signal.id == signal_id).first()
+    if not db_signal:
+        return {"error": "Signal not found"}
+    for key, value in signal.dict().items():
+        setattr(db_signal, key, value)
+    db.commit()
+    db.refresh(db_signal)
+    return db_signal
+
+@app.delete("/signals/{signal_id}")
+def delete_signal(signal_id: str, db: Session = Depends(get_db)):
+    db_signal = db.query(Signal).filter(Signal.id == signal_id).first()
+    if not db_signal:
+        return {"error": "Signal not found"}
+    db.delete(db_signal)
+    db.commit()
+    return {"ok": True}
+
+# --- CRUD Endpoints for Switch ---
+
+@app.post("/switches/", response_model=SwitchRead)
+def create_switch(switch: SwitchCreate, db: Session = Depends(get_db)):
+    db_switch = Switch(**switch.dict())
+    db.add(db_switch)
+    db.commit()
+    db.refresh(db_switch)
+    return db_switch
+
+@app.get("/switches/", response_model=List[SwitchRead])
+def read_switches(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return db.query(Switch).offset(skip).limit(limit).all()
+
+@app.get("/switches/{switch_id}", response_model=SwitchRead)
+def read_switch(switch_id: str, db: Session = Depends(get_db)):
+    switch = db.query(Switch).filter(Switch.id == switch_id).first()
+    if not switch:
+        return {"error": "Switch not found"}
+    return switch
+
+@app.put("/switches/{switch_id}", response_model=SwitchRead)
+def update_switch(switch_id: str, switch: SwitchUpdate, db: Session = Depends(get_db)):
+    db_switch = db.query(Switch).filter(Switch.id == switch_id).first()
+    if not db_switch:
+        return {"error": "Switch not found"}
+    for key, value in switch.dict().items():
+        setattr(db_switch, key, value)
+    db.commit()
+    db.refresh(db_switch)
+    return db_switch
+
+@app.delete("/switches/{switch_id}")
+def delete_switch(switch_id: str, db: Session = Depends(get_db)):
+    db_switch = db.query(Switch).filter(Switch.id == switch_id).first()
+    if not db_switch:
+        return {"error": "Switch not found"}
+    db.delete(db_switch)
+    db.commit()
+    return {"ok": True}
+
+# --- CRUD Endpoints for Block ---
+
+@app.post("/blocks/", response_model=BlockRead)
+def create_block(block: BlockCreate, db: Session = Depends(get_db)):
+    db_block = Block(**block.dict())
+    db.add(db_block)
+    db.commit()
+    db.refresh(db_block)
+    return db_block
+
+@app.get("/blocks/", response_model=List[BlockRead])
+def read_blocks(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return db.query(Block).offset(skip).limit(limit).all()
+
+@app.get("/blocks/{block_id}", response_model=BlockRead)
+def read_block(block_id: str, db: Session = Depends(get_db)):
+    block = db.query(Block).filter(Block.id == block_id).first()
+    if not block:
+        return {"error": "Block not found"}
+    return block
+
+@app.put("/blocks/{block_id}", response_model=BlockRead)
+def update_block(block_id: str, block: BlockUpdate, db: Session = Depends(get_db)):
+    db_block = db.query(Block).filter(Block.id == block_id).first()
+    if not db_block:
+        return {"error": "Block not found"}
+    for key, value in block.dict().items():
+        setattr(db_block, key, value)
+    db.commit()
+    db.refresh(db_block)
+    return db_block
+
+@app.delete("/blocks/{block_id}")
+def delete_block(block_id: str, db: Session = Depends(get_db)):
+    db_block = db.query(Block).filter(Block.id == block_id).first()
+    if not db_block:
+        return {"error": "Block not found"}
+    db.delete(db_block)
     db.commit()
     return {"ok": True}

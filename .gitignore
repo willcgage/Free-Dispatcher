@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+.env/
+.env
+
+# Alembic
+alembic/versions/
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# Pytest
+.cache/
+.pytest_cache/
+
+# Logs
+*.log
+
+# Ignore database files (if any)
+*.sqlite3
+
+# Ignore secrets
+*.env
