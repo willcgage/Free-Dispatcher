@@ -1,24 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "http://localhost:8000"; // Change if deploying
-
-export default function ModuleList() {
+export default function ModuleList({ apiUrl }) {
   const [modules, setModules] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
   useEffect(() => {
     fetchModules();
-  }, []);
+  }, [apiUrl]);
 
   const fetchModules = async () => {
-    const res = await axios.get(`${API_URL}/modules/`);
+    const res = await axios.get(`${apiUrl}/modules/`);
     setModules(res.data);
   };
 
   const handleAdd = async () => {
-    await axios.post(`${API_URL}/modules/`, { name, description });
+    await axios.post(`${apiUrl}/modules/`, { name, description });
     setName("");
     setDescription("");
     fetchModules();
