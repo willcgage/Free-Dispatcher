@@ -7,6 +7,7 @@ import BlockList from "./BlockList";
 import DispatcherList from "./DispatcherList";
 import TrainList from "./TrainList";
 import ConfigPage from "./ConfigPage";
+import YardMasterList from "./YardMasterList";
 
 function App() {
   const [apiUrl, setApiUrl] = useState(localStorage.getItem("apiUrl") || "http://localhost:8000");
@@ -29,6 +30,7 @@ function App() {
           <BlockList apiUrl={apiUrl} />
           <DispatcherList apiUrl={apiUrl} />
           <TrainList apiUrl={apiUrl} />
+          <YardMasterList apiUrl={apiUrl} />
         </>
       )}
     </div>

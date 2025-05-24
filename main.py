@@ -80,6 +80,12 @@ class Train(Base):
     dispatcher_id = Column(String, ForeignKey("dispatchers.id"), nullable=True)
     dispatcher = relationship("Dispatcher", backref="trains")
 
+class YardMaster(Base):
+    __tablename__ = "yardmasters"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=True)
+
 # Create all tables in the database (for development only; use Alembic in production)
 # Base.metadata.create_all(bind=engine)
 
@@ -203,6 +209,21 @@ class TrainUpdate(TrainBase):
     pass
 
 class TrainRead(TrainBase):
+    id: str
+    class Config:
+        orm_mode = True
+
+class YardMasterBase(BaseModel):
+    name: str
+    email: Optional[str] = None
+
+class YardMasterCreate(YardMasterBase):
+    pass
+
+class YardMasterUpdate(YardMasterBase):
+    pass
+
+class YardMasterRead(YardMasterBase):
     id: str
     class Config:
         orm_mode = True
@@ -492,5 +513,46 @@ def delete_train(train_id: str, db: Session = Depends(get_db)):
     if not db_train:
         return {"error": "Train not found"}
     db.delete(db_train)
+    db.commit()
+    return {"ok": True}
+
+# --- CRUD Endpoints for YardMaster ---
+
+@app.post("/yardmasters/", response_model=YardMasterRead)
+def create_yardmaster(yardmaster: YardMasterCreate, db: Session = Depends(get_db)):
+    db_yardmaster = YardMaster(**yardmaster.dict())
+    db.add(db_yardmaster)
+    db.commit()
+    db.refresh(db_yardmaster)
+    return db_yardmaster
+
+@app.get("/yardmasters/", response_model=List[YardMasterRead])
+def read_yardmasters(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return db.query(YardMaster).offset(skip).limit(limit).all()
+
+@app.get("/yardmasters/{yardmaster_id}", response_model=YardMasterRead)
+def read_yardmaster(yardmaster_id: str, db: Session = Depends(get_db)):
+    yardmaster = db.query(YardMaster).filter(YardMaster.id == yardmaster_id).first()
+    if not yardmaster:
+        return {"error": "YardMaster not found"}
+    return yardmaster
+
+@app.put("/yardmasters/{yardmaster_id}", response_model=YardMasterRead)
+def update_yardmaster(yardmaster_id: str, yardmaster: YardMasterUpdate, db: Session = Depends(get_db)):
+    db_yardmaster = db.query(YardMaster).filter(YardMaster.id == yardmaster_id).first()
+    if not db_yardmaster:
+        return {"error": "YardMaster not found"}
+    for key, value in yardmaster.dict().items():
+        setattr(db_yardmaster, key, value)
+    db.commit()
+    db.refresh(db_yardmaster)
+    return db_yardmaster
+
+@app.delete("/yardmasters/{yardmaster_id}")
+def delete_yardmaster(yardmaster_id: str, db: Session = Depends(get_db)):
+    db_yardmaster = db.query(YardMaster).filter(YardMaster.id == yardmaster_id).first()
+    if not db_yardmaster:
+        return {"error": "YardMaster not found"}
+    db.delete(db_yardmaster)
     db.commit()
     return {"ok": True}
